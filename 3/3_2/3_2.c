@@ -73,7 +73,11 @@ void *thread1(void *arg){
 
     /*YOUR CODE HERE*/
     /* Hint: Write data into proc file.*/
-
+    FILE *wptr = fopen("/proc/Mythread_info", "w");
+    if (wptr != NULL) {
+        fprintf(wptr, "%s", data); // 這會觸發 Kernel 的 Mywrite
+        fclose(wptr);
+    }
     /****************/ 
 
     char buffer[50]; 
@@ -97,7 +101,11 @@ void *thread2(void *arg){
     
     /*YOUR CODE HERE*/
     /* Hint: Write data into proc file.*/
-
+    FILE *wptr = fopen("/proc/Mythread_info", "w");
+    if (wptr != NULL) {
+        fprintf(wptr, "%s", data);
+        fclose(wptr);
+    }
     /****************/   
 
     char buffer[50]; 

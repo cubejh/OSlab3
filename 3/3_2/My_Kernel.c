@@ -10,15 +10,37 @@
 char buf[BUFSIZE]; //kernel buffer
 
 static ssize_t Mywrite(struct file *fileptr, const char __user *ubuf, size_t buffer_len, loff_t *offset){
-    /*Your code here*/
+    size_t len = (buffer_len < BUFSIZE) ? buffer_len : BUFSIZE - 1;
 
-    /****************/
+    if (copy_from_user(buf, ubuf, len)) {
+        return -EFAULT;
+    }
+    buf[len] = '\0'; 
+    return len;
 }
 
 
 static ssize_t Myread(struct file *fileptr, char __user *ubuf, size_t buffer_len, loff_t *offset){
     /*Your code here*/
+    char output[BUFSIZE];
+    int len = 0;
 
+    if (*offset > 0)
+        return 0;
+
+    len = snprintf(output, BUFSIZE, 
+                   "%s"
+                   "PID: %d, TID: %d, time: %llu\n", 
+                   buf,             
+                   current->tgid,   
+                   current->pid,      
+                   (unsigned long long)(current->utime / 100 / 1000));
+
+    if (copy_to_user(ubuf, output, len))
+        return -EFAULT;
+
+    *offset = len;
+    return len;
     /****************/
 }
 

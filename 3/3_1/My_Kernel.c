@@ -17,7 +17,33 @@ static ssize_t Mywrite(struct file *fileptr, const char __user *ubuf, size_t buf
 
 static ssize_t Myread(struct file *fileptr, char __user *ubuf, size_t buffer_len, loff_t *offset){
     /*Your code here*/
+    int len = 0;
+    struct task_struct *t;
 
+    if (*offset > 0)
+        return 0;
+
+    rcu_read_lock();
+
+    for_each_thread(current, t) {
+        if (len + 128 > BUFSIZE) break; 
+
+        len += snprintf(buf + len, BUFSIZE - len, 
+                       "Thread Name: %s, PID: %d, TID: %d, Priority: %d, State: %ld\n", 
+                       t->comm,   
+                       t->tgid,   
+                       t->pid,   
+                       t->prio,  
+                       (long)t->__state); 
+    }
+    rcu_read_unlock();
+
+    if (copy_to_user(ubuf, buf, len)) {
+        return -EFAULT; 
+    }
+
+    *offset = len;
+    return len;
     /****************/
 }
 
